@@ -2,6 +2,8 @@
 
 SG_ID="sg-01bee421753dcfbdc" # replace with your ID
 AMI_ID="ami-0220d79f3f480ecf5"
+ZONE_ID="Z08992133R6Q0NXNUHFDK"
+DOMAIN_NAME="daws88sl.online"
 
 for instance in $@
     do
@@ -20,6 +22,7 @@ for instance in $@
                 --query 'Reservations[].Instances[].PublicIpAddress' \
                 --output text
             )
+            RECORD_NAME="$DOMAIN_NAME" # daws88sl.online
         else
             IP=$(
                 aws ec2 describe-instances \
@@ -27,6 +30,32 @@ for instance in $@
                 --query 'Reservations[].Instances[].PrivateIpAddress' \
                 --output text
             )
+            RECORD_NAME="$instance.$DOMAIN_NAME" # mongodb.daws88sl.online
         fi
             echo "IP Address: $IP"
+
+            aws route53 change-resource-record-sets \
+            --hosted-zone-id $ZONE_ID \
+            --change-batch '
+            {
+                "Comment": "Updating record",
+                "Changes": [
+                    {
+                    "Action": "UPSERT",
+                    "ResourceRecordSet": {
+                        "Name": "'$RECORD_NAME'",
+                        "Type": "A",
+                        "TTL": 1,
+                        "ResourceRecords": [
+                        {
+                            "Value": "'$IP'"
+                        }
+                            ]
+                        }
+                    }
+                ]
+            }
+            '
+
+                echo "record updated for $instance"        
     done
