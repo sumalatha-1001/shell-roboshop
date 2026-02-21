@@ -5,7 +5,7 @@ AMI_ID="ami-0220d79f3f480ecf5"
 
 for instance in $@
     do
-        INSTANCE_ID=$( aws ec2 run-instances \
+        INSTANCE_ID = $( aws ec2 run-instances \
         --image-id $AMI_ID \
         --instance-type "t3.micro" \
         --security-group-ids $SG_ID \
@@ -28,6 +28,5 @@ for instance in $@
                 --output text
             )
         fi
-
-        echo "IP Address: $IP"
+            echo "IP Address: $IP"
     done
